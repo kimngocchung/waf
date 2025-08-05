@@ -1,0 +1,30 @@
+# Docker
+Dockerfile
+docker-compose.yml
+nginx.Dockerfile
+
+# Node
+node_modules
+npm-debug.log
+.npm
+.next/
+.turbo/
+build/
+dist/
+
+# Env
+.env
+.env*.local
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,21 @@
+services:
+  nginx-modsec:
+    image: owasp/modsecurity-crs:3.3.5-nginx-202308071108
+    ports:
+      - "80:80"
+    volumes:
+      # Mount the nginx config directly to the conf.d directory
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./modsec_logs:/var/log/modsec
+    environment:
+      # UPSTREAM is the address of the Next.js dev server running on the host
+      - UPSTREAM=http://host.docker.internal:9002
+      # Enable the WAF rule engine
+      - MODSEC_RULE_ENGINE=On
+      # Set the audit log path and format
+      - MODSEC_AUDIT_LOG=/var/log/modsec/audit.log
+      - MODSEC_AUDIT_LOG_TYPE=JSON
+    restart: always
+
+volumes:
+  modsec_logs:
