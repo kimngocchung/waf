@@ -1,3 +1,4 @@
+// src/app/page.tsx (hoặc file tương đương)
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -15,32 +16,56 @@ import Link from 'next/link';
 
 export default function DashboardPage() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // isLoading chỉ dùng cho skeleton ban đầu, sẽ tắt ngay khi component được tải.
+  const [isLoading, setIsLoading] = useState(true); 
   const [searchTerm, setSearchTerm] = useState('');
 
+  // SỬA ĐỔI CHÍNH NẰM Ở ĐÂY
+  // src/app/page.tsx
+
   useEffect(() => {
-    const fetchLogs = async () => {
+    // Bước 1: Tạo một hàm để tải log cũ khi trang được load
+    const fetchInitialLogs = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('/api/logs');
+        const response = await fetch('/api/logs/historical'); // Gọi API mới
         if (!response.ok) {
-          throw new Error('Failed to fetch logs');
+          throw new Error('Failed to fetch historical logs');
         }
-        const data: LogEntry[] = await response.json();
-        setLogs(data);
+        const historicalLogs: LogEntry[] = await response.json();
+        setLogs(historicalLogs); // Cập nhật state với log cũ
       } catch (error) {
         console.error(error);
-        // Handle error state, e.g., show a toast notification
       } finally {
         setIsLoading(false);
       }
     };
 
-    const interval = setInterval(fetchLogs, 5000); // Fetch logs every 5 seconds
-    fetchLogs(); // Initial fetch
+    // Gọi hàm tải log cũ ngay lập tức
+    fetchInitialLogs();
 
-    return () => clearInterval(interval); // Cleanup interval on component unmount
-  }, []);
+    // Bước 2: Mở kết nối streaming để lắng nghe log mới (giống như cũ)
+    const eventSource = new EventSource('/api/logs');
+
+    eventSource.onmessage = (event) => {
+      try {
+        const newLog = JSON.parse(event.data);
+        // Thêm log mới vào đầu danh sách
+        setLogs((prevLogs) => [newLog, ...prevLogs]);
+      } catch (error) {
+        console.error('Failed to parse incoming log event:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('EventSource encountered an error:', error);
+    };
+
+    // Hàm dọn dẹp để đóng kết nối khi rời trang
+    return () => {
+      eventSource.close();
+    };
+  }, []); // Mảng rỗng đảm bảo useEffect chỉ chạy một lần
 
   const filteredLogs = useMemo(() => {
     if (!searchTerm) {
@@ -55,6 +80,8 @@ export default function DashboardPage() {
     );
   }, [logs, searchTerm]);
   
+  // Logic render loading và phần còn lại của component được giữ nguyên...
+  // ... (Phần JSX của bạn không cần thay đổi)
   const renderLoadingSkeleton = () => (
     <>
         <Header title="WAF Dashboard" />
@@ -82,7 +109,7 @@ export default function DashboardPage() {
     </>
   );
 
-  return (
+ return (
       <SidebarProvider>
         <Sidebar>
           <SidebarHeader>
@@ -94,20 +121,20 @@ export default function DashboardPage() {
           <SidebarContent>
               <SidebarMenu>
                   <SidebarMenuItem>
-                    <Link href="/" passHref>
-                      <SidebarMenuButton isActive>
-                          <Home />
-                          <span>Dashboard</span>
-                      </SidebarMenuButton>
-                    </Link>
+                      <Link href="/" passHref>
+                        <SidebarMenuButton isActive>
+                            <Home />
+                            <span>Dashboard</span>
+                        </SidebarMenuButton>
+                      </Link>
                   </SidebarMenuItem>
                    <SidebarMenuItem>
-                    <Link href="/domains" passHref>
-                      <SidebarMenuButton>
-                          <Globe />
-                          <span>Domain Management</span>
-                      </SidebarMenuButton>
-                    </Link>
+                      <Link href="/domains" passHref>
+                        <SidebarMenuButton>
+                            <Globe />
+                            <span>Domain Management</span>
+                        </SidebarMenuButton>
+                      </Link>
                   </SidebarMenuItem>
               </SidebarMenu>
           </SidebarContent>
@@ -146,5 +173,5 @@ export default function DashboardPage() {
           </main>
         </SidebarInset>
       </SidebarProvider>
-  );
+ );
 }

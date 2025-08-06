@@ -1,33 +1,23 @@
-# Stage 1: Builder
-FROM node:18-alpine AS builder
+# Dockerfile (Dành cho Development)
+
+# Bắt đầu từ một image Node.js
+FROM node:18-alpine
+
+# Đặt thư mục làm việc bên trong container
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Sao chép package.json và package-lock.json
 COPY package.json package-lock.json* ./
-RUN npm ci
 
-# Copy the rest of the application source code
+# Cài đặt các gói phụ thuộc
+RUN npm install
+
+# Sao chép toàn bộ mã nguồn còn lại
 COPY . .
 
-# Ensure the public directory exists before building
-RUN mkdir -p public
-
-# Build the Next.js application
-RUN npm run build
-
-# Stage 2: Production
-FROM node:18-alpine AS runner
-WORKDIR /app
-
-# Copy necessary files from the builder stage
-COPY --from=builder /app/next.config.ts ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-# Expose the port the app runs on
+# Mở cổng 3000
 EXPOSE 3000
 
-# Start the Next.js application
-CMD ["npm", "start"]
+# Lệnh để chạy server development
+# HOST 0.0.0.0 là cần thiết để có thể truy cập từ bên ngoài container
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]

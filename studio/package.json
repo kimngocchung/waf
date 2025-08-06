@@ -3,16 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env MODSEC_LOG_FILE=./modsec_logs/audit.log next dev --turbopack -p 9002",
-    "start:waf": "docker-compose -f docker-compose.dev.yml up -d",
-    "dev:waf": "npm-run-all -p start:waf dev",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "node_modules/next/dist/bin/next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
-  },
+  "dev": "cross-env MODSEC_LOG_FILE=./modsec_logs/audit.log next dev --turbopack -p 9002",
+  "start:waf": "docker-compose up -d",
+  "dev:waf": "npm-run-all -p start:waf dev",
+  "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
+  "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+  "build": "node_modules/next/dist/bin/next build",
+  "start": "next start",
+  "lint": "next lint",
+  "typecheck": "tsc --noEmit",
+  "dev:modsec-log": "docker logs -f waf-service --since 1s 2>&1 | ForEach-Object { if ($_ -match '\"transaction\":') { Invoke-RestMethod -Uri http://localhost:9002/api/webhook/logs -Method Post -ContentType 'application/json' -Body $_ } }"
+},
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
     "@genkit-ai/next": "^1.14.1",
