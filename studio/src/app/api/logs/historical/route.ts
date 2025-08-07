@@ -3,24 +3,22 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import readline from 'readline';
+import path from 'path';
 
-// Đường dẫn đến file log bên trong container của dashboard
-const LOG_FILE_PATH = '/var/log/modsec/audit.log';
+// Tạo một đường dẫn an toàn để lưu log bên trong thư mục dự án
+const LOCAL_LOG_FILE = path.join(process.cwd(), 'local_audit.log');
 
-// Định nghĩa kiểu dữ liệu cho log để đảm bảo an toàn
 interface LogEntry {
   transaction: object;
-  // Thêm các thuộc tính khác nếu cần
 }
 
 async function getLogsFromFile(): Promise<LogEntry[]> {
   try {
-    // Kiểm tra xem file có tồn tại không
-    if (!fs.existsSync(LOG_FILE_PATH)) {
+    if (!fs.existsSync(LOCAL_LOG_FILE)) {
       return [];
     }
 
-    const fileStream = fs.createReadStream(LOG_FILE_PATH);
+    const fileStream = fs.createReadStream(LOCAL_LOG_FILE);
     const rl = readline.createInterface({
       input: fileStream,
       crlfDelay: Infinity,

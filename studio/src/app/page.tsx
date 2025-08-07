@@ -23,8 +23,10 @@ export default function DashboardPage() {
   // SỬA ĐỔI CHÍNH NẰM Ở ĐÂY
   // src/app/page.tsx
 
+  // src/app/page.tsx
+
   useEffect(() => {
-    // Bước 1: Tạo một hàm để tải log cũ khi trang được load
+    // Bước 1: Tải log cũ khi trang được load
     const fetchInitialLogs = async () => {
       setIsLoading(true);
       try {
@@ -41,17 +43,15 @@ export default function DashboardPage() {
       }
     };
 
-    // Gọi hàm tải log cũ ngay lập tức
     fetchInitialLogs();
 
-    // Bước 2: Mở kết nối streaming để lắng nghe log mới (giống như cũ)
+    // Bước 2: Mở kết nối streaming để lắng nghe log mới
     const eventSource = new EventSource('/api/logs');
 
     eventSource.onmessage = (event) => {
       try {
         const newLog = JSON.parse(event.data);
-        // Thêm log mới vào đầu danh sách
-        setLogs((prevLogs) => [newLog, ...prevLogs]);
+        setLogs((prevLogs) => [newLog, ...prevLogs]); // Thêm log mới vào đầu danh sách
       } catch (error) {
         console.error('Failed to parse incoming log event:', error);
       }

@@ -8,12 +8,12 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      # THÊM LẠI DÒNG NÀY:
+      # Ánh xạ file nginx.conf tùy chỉnh của bạn
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      # Ánh xạ volume chứa file allowlist
       - config_volume:/etc/nginx/config
-    # Các biến môi trường bây giờ không còn tác dụng với Nginx nữa, 
-    # nhưng vẫn cần cho ModSecurity.
     environment:
+      # Các biến này chỉ cần cho ModSecurity
       - MODSEC_RULE_ENGINE=On
       - MODSEC_AUDIT_LOG=/dev/stdout
       - MODSEC_AUDIT_LOG_TYPE=Serial
@@ -21,8 +21,7 @@ services:
     depends_on:
       - dashboard
     restart: always
-  
-  # ... dịch vụ dashboard giữ nguyên ...
+
   dashboard:
     build:
       context: .
@@ -31,7 +30,7 @@ services:
     ports:
       - "9002:9002"
     volumes:
-      - .:/app 
+      - .:/app
       - /app/node_modules
       - config_volume:/app/config
     environment:
